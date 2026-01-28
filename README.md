@@ -8,3 +8,5 @@ Goal:
 - modify code both at traditional IDE and via Claude Code
 
 Project 1: Set up a simple install of boardgame.io with a sample game
+
+https://devp-fgj-js.netlify.app/
