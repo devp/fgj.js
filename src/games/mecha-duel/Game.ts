@@ -574,4 +574,60 @@ export const MechaDuel: Game<MechaDuelState> = {
   endIf: ({ G }) => {
     return checkWinCondition(G);
   },
+
+  ai: {
+    enumerate: (G: MechaDuelState, ctx) => {
+      const moves: Array<{ move: string; args: unknown[] }> = [];
+      const playerID = ctx.currentPlayer as '0' | '1';
+      const kingPos = G.kings[playerID];
+
+      if (!kingPos) return moves;
+
+      const myPieces = G.pieces[playerID];
+      const readyPieces = myPieces.filter((p) => p.state === 'ready');
+      const committedPieces = G.committedPieces.filter(
+        (cp) => cp.playerId === playerID
+      );
+
+      // Enumerate all valid Commit moves
+      for (const piece of readyPieces) {
+        for (let y = 0; y < BOARD_SIZE; y++) {
+          for (let x = 0; x < BOARD_SIZE; x++) {
+            const target = { x, y };
+            if (isValidCommitTarget(piece.type, kingPos, target)) {
+              moves.push({ move: 'commit', args: [piece.id, target] });
+            }
+          }
+        }
+      }
+
+      // Enumerate Execute combinations (non-empty subsets of committed pieces)
+      if (committedPieces.length > 0) {
+        const pieceIds = committedPieces.map((cp) => cp.pieceId);
+        // Generate all non-empty subsets
+        for (let mask = 1; mask < (1 << pieceIds.length); mask++) {
+          const subset: number[] = [];
+          for (let i = 0; i < pieceIds.length; i++) {
+            if (mask & (1 << i)) {
+              subset.push(pieceIds[i]);
+            }
+          }
+          moves.push({ move: 'execute', args: [subset] });
+        }
+      }
+
+      // Enumerate KingStep moves (8 directions)
+      for (const dir of DIRECTIONS.all) {
+        const target = { x: kingPos.x + dir.x, y: kingPos.y + dir.y };
+        if (isValidKingStep(kingPos, target)) {
+          moves.push({ move: 'kingStep', args: [target] });
+        }
+      }
+
+      // Pass is always valid
+      moves.push({ move: 'pass', args: [] });
+
+      return moves;
+    },
+  },
 };
