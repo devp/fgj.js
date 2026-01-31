@@ -9,7 +9,7 @@ export interface RPSState {
   lastResult: string | null;
 }
 
-function getWinner(move0: Move, move1: Move): '0' | '1' | 'tie' | null {
+export function getWinner(move0: Move, move1: Move): '0' | '1' | 'tie' | null {
   if (!move0 || !move1) return null;
   if (move0 === move1) return 'tie';
   if (
