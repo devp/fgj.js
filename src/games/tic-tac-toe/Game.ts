@@ -35,7 +35,7 @@ export const TicTacToe: Game<TicTacToeState> = {
   },
 };
 
-function isVictory(cells: (string | null)[]): boolean {
+export function isVictory(cells: (string | null)[]): boolean {
   const positions = [
     [0, 1, 2],
     [3, 4, 5],
@@ -55,6 +55,6 @@ function isVictory(cells: (string | null)[]): boolean {
   return false;
 }
 
-function isDraw(cells: (string | null)[]): boolean {
+export function isDraw(cells: (string | null)[]): boolean {
   return cells.every((cell) => cell !== null);
 }
