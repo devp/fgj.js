@@ -102,7 +102,7 @@ function GameView({ gameId, definition }: { gameId: string; definition: GameDefi
           &larr; Back to games
         </a>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', padding: '20px' }}>
+      <div className="player-container">
         <div>
           <h2 style={{ textAlign: 'center' }}>Player 1</h2>
           <GameClient playerID="0" />

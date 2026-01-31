@@ -9,6 +9,19 @@
         margin: 0;
         background-color: #f0f0f0;
       }
+      .player-container {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        padding: 20px;
+      }
+      @media (max-width: 768px) {
+        .player-container {
+          flex-direction: column;
+          gap: 20px;
+          align-items: center;
+        }
+      }
     </style>
   </head>
   <body>
