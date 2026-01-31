@@ -1,4 +1,5 @@
 import type { Game } from 'boardgame.io';
+import { getScenario, defaultScenarioId } from './scenarios';
 
 // =============================================================================
 // Types
@@ -124,24 +125,53 @@ export function createInitialPieces(): Piece[] {
 }
 
 // =============================================================================
+// Board Setup
+// =============================================================================
+
+export function createInitialBoard(scenarioId: string = defaultScenarioId): {
+  cells: CellContent[];
+  kings: { '0': Position; '1': Position };
+} {
+  const scenario = getScenario(scenarioId);
+  const cells: CellContent[] = Array(TOTAL_CELLS).fill(null);
+
+  // Place pawns
+  for (const pawnPos of scenario.pawns) {
+    cells[posToIndex(pawnPos)] = 'pawn';
+  }
+
+  // Place kings on the cells
+  cells[posToIndex(scenario.kingPositions['0'])] = 'king0';
+  cells[posToIndex(scenario.kingPositions['1'])] = 'king1';
+
+  return {
+    cells,
+    kings: {
+      '0': { ...scenario.kingPositions['0'] },
+      '1': { ...scenario.kingPositions['1'] },
+    },
+  };
+}
+
+// =============================================================================
 // Game Definition (stub - to be implemented in later phases)
 // =============================================================================
 
 export const MechaDuel: Game<MechaDuelState> = {
   name: 'mecha-duel',
 
-  setup: () => ({
-    cells: Array(TOTAL_CELLS).fill(null),
-    kings: {
-      '0': { x: 4, y: 0 },
-      '1': { x: 4, y: 7 },
-    },
-    pieces: {
-      '0': createInitialPieces(),
-      '1': createInitialPieces(),
-    },
-    committedPieces: [],
-  }),
+  setup: () => {
+    const { cells, kings } = createInitialBoard();
+    return {
+      cells,
+      kings,
+      pieces: {
+        '0': createInitialPieces(),
+        '1': createInitialPieces(),
+      },
+      committedPieces: [],
+    };
+  },
 
   turn: {
     minMoves: 1,
