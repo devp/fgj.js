@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Client } from 'boardgame.io/react';
 import { Local } from 'boardgame.io/multiplayer';
-import { RandomBot } from 'boardgame.io/ai';
+import { RandomBot, MCTSBot } from 'boardgame.io/ai';
 import { games, gameIds, type GameDefinition } from './registry';
 
 type AISettings = {
@@ -117,17 +117,35 @@ function AIToggle({
   );
 }
 
+// Factory to create MCTSBot with game-specific options
+function createMCTSBot(game: GameDefinition['game']) {
+  return class extends MCTSBot {
+    constructor(opts: ConstructorParameters<typeof MCTSBot>[0]) {
+      super({
+        ...opts,
+        game,
+        iterations: 500,
+        playoutDepth: 20,
+      });
+    }
+  };
+}
+
 function GameView({ gameId, definition }: { gameId: string; definition: GameDefinition }) {
   const [aiSettings, setAiSettings] = useState<AISettings>({ player0: false, player1: false });
 
   const GameClient = useMemo(() => {
+    // Use MCTSBot for tic-tac-toe (turn-based), RandomBot for others (like simultaneous RPS)
+    const useMCTS = gameId === 'tic-tac-toe';
+    const BotClass = useMCTS ? createMCTSBot(definition.game) : RandomBot;
+
     // Build the bots configuration based on AI settings
     const bots: Record<string, typeof RandomBot> = {};
     if (aiSettings.player0) {
-      bots['0'] = RandomBot;
+      bots['0'] = BotClass;
     }
     if (aiSettings.player1) {
-      bots['1'] = RandomBot;
+      bots['1'] = BotClass;
     }
 
     return Client({
