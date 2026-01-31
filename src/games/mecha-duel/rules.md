@@ -45,3 +45,7 @@ On your turn, choose ONE action:
 - Commitments lock to board squares when placed
 - King can only be in one place (can only execute one Knight per turn)
 - All pieces follow cooldown cycle: Ready → Committed → Exhausted → (Pass) → Ready
+
+----
+
+Author: Dev Purkayastha, 2026
