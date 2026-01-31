@@ -33,6 +33,18 @@ export const TicTacToe: Game<TicTacToeState> = {
       return { draw: true };
     }
   },
+
+  ai: {
+    enumerate: (G: TicTacToeState) => {
+      const moves: Array<{ move: string; args: [number] }> = [];
+      for (let i = 0; i < G.cells.length; i++) {
+        if (G.cells[i] === null) {
+          moves.push({ move: 'clickCell', args: [i] });
+        }
+      }
+      return moves;
+    },
+  },
 };
 
 export function isVictory(cells: (string | null)[]): boolean {

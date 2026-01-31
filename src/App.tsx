@@ -1,7 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Client } from 'boardgame.io/react';
 import { Local } from 'boardgame.io/multiplayer';
+import { RandomBot, MCTSBot } from 'boardgame.io/ai';
 import { games, gameIds, type GameDefinition } from './registry';
+
+type AISettings = {
+  player0: boolean;
+  player1: boolean;
+};
 
 function GameSelector({ onSelect }: { onSelect: (id: string) => void }) {
   return (
@@ -77,16 +83,77 @@ function Rules({ rules }: { rules: string }) {
   );
 }
 
-function GameView({ gameId, definition }: { gameId: string; definition: GameDefinition }) {
-  const GameClient = useMemo(
-    () =>
-      Client({
-        game: definition.game,
-        board: definition.Board,
-        multiplayer: Local(),
-      }),
-    [gameId, definition]
+function AIToggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <label
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        cursor: 'pointer',
+        padding: '8px 12px',
+        border: '1px solid #ccc',
+        borderRadius: '4px',
+        backgroundColor: checked ? '#e8f4e8' : '#fff',
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        style={{ cursor: 'pointer' }}
+      />
+      <span>{label}</span>
+      {checked && <span style={{ color: '#666', fontSize: '12px' }}>(AI)</span>}
+    </label>
   );
+}
+
+// Factory to create MCTSBot with game-specific options
+function createMCTSBot(game: GameDefinition['game']) {
+  return class extends MCTSBot {
+    constructor(opts: ConstructorParameters<typeof MCTSBot>[0]) {
+      super({
+        ...opts,
+        game,
+        iterations: 500,
+        playoutDepth: 20,
+      });
+    }
+  };
+}
+
+function GameView({ gameId, definition }: { gameId: string; definition: GameDefinition }) {
+  const [aiSettings, setAiSettings] = useState<AISettings>({ player0: false, player1: false });
+
+  const GameClient = useMemo(() => {
+    // Use MCTSBot for tic-tac-toe (turn-based), RandomBot for others (like simultaneous RPS)
+    const useMCTS = gameId === 'tic-tac-toe';
+    const BotClass = useMCTS ? createMCTSBot(definition.game) : RandomBot;
+
+    // Build the bots configuration based on AI settings
+    const bots: Record<string, typeof RandomBot> = {};
+    if (aiSettings.player0) {
+      bots['0'] = BotClass;
+    }
+    if (aiSettings.player1) {
+      bots['1'] = BotClass;
+    }
+
+    return Client({
+      game: definition.game,
+      board: definition.Board,
+      multiplayer: Local({ bots: Object.keys(bots).length > 0 ? bots : undefined }),
+    });
+  }, [gameId, definition, aiSettings]);
 
   return (
     <div style={{ fontFamily: 'sans-serif' }}>
@@ -102,13 +169,41 @@ function GameView({ gameId, definition }: { gameId: string; definition: GameDefi
           &larr; Back to games
         </a>
       </div>
-      <div className="player-container">
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '20px',
+          padding: '15px',
+          backgroundColor: '#f5f5f5',
+          borderBottom: '1px solid #ccc',
+        }}
+      >
+        <span style={{ fontWeight: 'bold', alignSelf: 'center' }}>AI Players:</span>
+        <AIToggle
+          label="Player 1"
+          checked={aiSettings.player0}
+          onChange={(checked) => setAiSettings((s) => ({ ...s, player0: checked }))}
+        />
+        <AIToggle
+          label="Player 2"
+          checked={aiSettings.player1}
+          onChange={(checked) => setAiSettings((s) => ({ ...s, player1: checked }))}
+        />
+      </div>
+
+      <div className="player-container" style={{ display: 'flex', justifyContent: 'center', gap: '40px', padding: '20px' }}>
         <div>
-          <h2 style={{ textAlign: 'center' }}>Player 1</h2>
+          <h2 style={{ textAlign: 'center' }}>
+            Player 1 {aiSettings.player0 && <span style={{ color: '#666', fontSize: '14px' }}>(AI)</span>}
+          </h2>
           <GameClient playerID="0" />
         </div>
         <div>
-          <h2 style={{ textAlign: 'center' }}>Player 2</h2>
+          <h2 style={{ textAlign: 'center' }}>
+            Player 2 {aiSettings.player1 && <span style={{ color: '#666', fontSize: '14px' }}>(AI)</span>}
+          </h2>
           <GameClient playerID="1" />
         </div>
       </div>
