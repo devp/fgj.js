@@ -36,6 +36,47 @@ function GameSelector({ onSelect }: { onSelect: (id: string) => void }) {
   );
 }
 
+function Rules({ rules }: { rules: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div style={{ marginTop: '20px', textAlign: 'left', maxWidth: '600px', margin: '20px auto' }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          padding: '8px 16px',
+          fontSize: '14px',
+          cursor: 'pointer',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+          backgroundColor: '#f5f5f5',
+          width: '100%',
+          textAlign: 'left',
+        }}
+      >
+        {isOpen ? '▼' : '▶'} Rules
+      </button>
+      {isOpen && (
+        <div
+          style={{
+            padding: '16px',
+            border: '1px solid #ccc',
+            borderTop: 'none',
+            borderRadius: '0 0 4px 4px',
+            backgroundColor: '#fafafa',
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'sans-serif',
+            fontSize: '14px',
+            lineHeight: '1.6',
+          }}
+        >
+          {rules}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GameView({ gameId, definition }: { gameId: string; definition: GameDefinition }) {
   const GameClient = useMemo(
     () =>
@@ -71,6 +112,7 @@ function GameView({ gameId, definition }: { gameId: string; definition: GameDefi
           <GameClient playerID="1" />
         </div>
       </div>
+      <Rules rules={definition.rules} />
     </div>
   );
 }
