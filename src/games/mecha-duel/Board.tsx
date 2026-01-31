@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import type { BoardProps } from 'boardgame.io/react';
-import type { MechaDuelState, Position, PieceType, Piece, CommittedPiece } from './Game';
+import type { MechaDuelState, PieceType, Piece } from './Game';
 import {
   BOARD_SIZE,
   indexToPos,
-  posToIndex,
   isValidCommitTarget,
   isValidKingStep,
-  isValidKnightJump,
 } from './Game';
 
 type ActionType = 'commit' | 'execute' | 'kingStep' | null;
@@ -183,14 +181,6 @@ export function Board({ G, ctx, moves, playerID }: BoardProps<MechaDuelState>) {
         {cellContent}
       </div>
     );
-  };
-
-  const boardStyle: React.CSSProperties = {
-    display: 'grid',
-    gridTemplateColumns: `repeat(${BOARD_SIZE}, ${CELL_SIZE}px)`,
-    gap: '1px',
-    marginBottom: '20px',
-    border: '2px solid #333',
   };
 
   const buttonStyle: React.CSSProperties = {

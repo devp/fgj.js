@@ -348,7 +348,7 @@ export function resolveKingStep(
 // =============================================================================
 
 export function transitionPieceState(
-  piece: Piece,
+  _piece: Piece,
   newState: PieceState
 ): PieceState {
   return newState;

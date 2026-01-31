@@ -6,7 +6,6 @@ const {
   indexToPos,
   isValidPos,
   posEquals,
-  BOARD_SIZE,
   TOTAL_CELLS,
   createInitialPieces,
   createInitialBoard,
