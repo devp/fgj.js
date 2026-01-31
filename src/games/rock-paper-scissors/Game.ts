@@ -73,4 +73,15 @@ export const RPS: Game<RPSState> = {
     if (G.scores['0'] >= 2) return { winner: '0' };
     if (G.scores['1'] >= 2) return { winner: '1' };
   },
+
+  ai: {
+    enumerate: (G: RPSState, _ctx: unknown, playerID: string) => {
+      // Player can only make a move if they haven't chosen yet this round
+      if (G.moves[playerID as '0' | '1'] !== null) {
+        return [];
+      }
+      const choices: Move[] = ['rock', 'paper', 'scissors'];
+      return choices.map((choice) => ({ move: 'choose', args: [choice] }));
+    },
+  },
 };
