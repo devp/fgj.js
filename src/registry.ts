@@ -8,6 +8,9 @@ import TicTacToeRules from './games/tic-tac-toe/rules.md?raw';
 import * as RockPaperScissors from './games/rock-paper-scissors';
 import RockPaperScissorsRules from './games/rock-paper-scissors/rules.md?raw';
 
+import * as MechaDuel from './games/mecha-duel';
+import MechaDuelRules from './games/mecha-duel/rules.md?raw';
+
 export interface GameDefinition {
   game: Game;
   Board: ComponentType<BoardProps>;
@@ -53,6 +56,15 @@ export const games: Record<string, GameDefinition> = {
     minPlayers: 2,
     maxPlayers: 2,
     rules: RockPaperScissorsRules,
+  },
+  'mecha-duel': {
+    game: MechaDuel.game,
+    Board: MechaDuel.Board,
+    name: 'Mecha Duel',
+    description: 'Strategic mecha combat with committed attacks',
+    minPlayers: 2,
+    maxPlayers: 2,
+    rules: MechaDuelRules,
   },
 };
 
