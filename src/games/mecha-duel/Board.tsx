@@ -127,58 +127,93 @@ export function Board({ G, ctx, moves, playerID }: BoardProps<MechaDuelState>) {
       (cp) => cp.target.x === pos.x && cp.target.y === pos.y
     );
 
-    let cellContent = '';
-    let cellColor = '#f5f5dc'; // default tan
-    let textColor = '#333';
+    // Determine underlying content (pawn or king)
+    let underlyingSymbol = '';
+    let underlyingColor = '';
 
     if (content === 'king0') {
-      cellContent = 'K';
-      cellColor = '#4a90d9';
-      textColor = '#fff';
+      underlyingSymbol = 'K';
+      underlyingColor = '#4a90d9'; // blue
     } else if (content === 'king1') {
-      cellContent = 'K';
-      cellColor = '#d94a4a';
-      textColor = '#fff';
-    } else if (content === 'pawn') {
-      cellContent = 'P';
-      cellColor = '#888';
-      textColor = '#fff';
+      underlyingSymbol = 'K';
+      underlyingColor = '#d94a4a'; // red
+    } else if (content === 'pawn0') {
+      underlyingSymbol = 'P';
+      underlyingColor = '#4a90d9'; // blue (player 0)
+    } else if (content === 'pawn1') {
+      underlyingSymbol = 'P';
+      underlyingColor = '#d94a4a'; // red (player 1)
     }
 
-    // Show committed pieces
-    if (committedHere.length > 0) {
-      const cp = committedHere[0];
-      cellContent = PIECE_SYMBOLS[cp.type];
-      cellColor = cp.playerId === '0' ? '#7ab8e6' : '#e67a7a';
-      textColor = '#000';
-    }
+    // Determine committed piece info
+    const hasCommitted = committedHere.length > 0;
+    const committedSymbols = committedHere.map((cp) => ({
+      symbol: PIECE_SYMBOLS[cp.type],
+      color: cp.playerId === '0' ? '#7ab8e6' : '#e67a7a',
+    }));
 
-    // Highlight valid cells
+    // Determine cell background
+    let cellColor = '#f5f5dc'; // default tan
     if (isValid) {
-      cellColor = '#90EE90';
+      cellColor = '#90EE90'; // green highlight for valid moves
+    } else if (underlyingColor && !hasCommitted) {
+      cellColor = underlyingColor;
     }
 
     const cellStyle: React.CSSProperties = {
       width: `${CELL_SIZE}px`,
       height: `${CELL_SIZE}px`,
-      fontSize: '24px',
-      fontWeight: 'bold',
       border: '1px solid #333',
       backgroundColor: cellColor,
-      color: textColor,
       cursor: isValid ? 'pointer' : 'default',
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
+      position: 'relative',
     };
 
+    // Render cell content showing all pieces
+    // If there are committed pieces, show them prominently
+    // If there's underlying content (pawn/king), show it too
     return (
       <div
         key={index}
         style={cellStyle}
         onClick={() => handleCellClick(index)}
       >
-        {cellContent}
+        {/* Underlying content (pawn/king) */}
+        {underlyingSymbol && (
+          <div
+            style={{
+              fontSize: hasCommitted ? '12px' : '24px',
+              fontWeight: 'bold',
+              color: hasCommitted ? underlyingColor : '#fff',
+              position: hasCommitted ? 'absolute' : 'static',
+              bottom: hasCommitted ? '2px' : undefined,
+              right: hasCommitted ? '4px' : undefined,
+            }}
+          >
+            {underlyingSymbol}
+          </div>
+        )}
+        {/* Committed pieces (targeting) */}
+        {committedSymbols.map((cp, i) => (
+          <div
+            key={i}
+            style={{
+              fontSize: underlyingSymbol ? '18px' : '24px',
+              fontWeight: 'bold',
+              backgroundColor: cp.color,
+              color: '#000',
+              padding: '2px 4px',
+              borderRadius: '3px',
+              marginBottom: committedSymbols.length > 1 ? '1px' : '0',
+            }}
+          >
+            {cp.symbol}
+          </div>
+        ))}
       </div>
     );
   };

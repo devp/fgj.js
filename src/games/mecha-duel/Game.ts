@@ -27,7 +27,7 @@ export interface CommittedPiece {
   target: Position;
 }
 
-export type CellContent = 'pawn' | 'king0' | 'king1' | null;
+export type CellContent = 'pawn0' | 'pawn1' | 'king0' | 'king1' | null;
 
 export interface MechaDuelState {
   cells: CellContent[];
@@ -135,9 +135,9 @@ export function createInitialBoard(scenarioId: string = defaultScenarioId): {
   const scenario = getScenario(scenarioId);
   const cells: CellContent[] = Array(TOTAL_CELLS).fill(null);
 
-  // Place pawns
-  for (const pawnPos of scenario.pawns) {
-    cells[posToIndex(pawnPos)] = 'pawn';
+  // Place pawns with player ownership
+  for (const pawn of scenario.pawns) {
+    cells[posToIndex(pawn.position)] = `pawn${pawn.player}` as CellContent;
   }
 
   // Place kings on the cells
@@ -379,15 +379,33 @@ function exhaustCommittedPieces(pieces: Piece[]): Piece[] {
 // Win Conditions
 // =============================================================================
 
+export function countPawns(cells: CellContent[], playerId: '0' | '1'): number {
+  const pawnType = `pawn${playerId}` as CellContent;
+  return cells.filter((cell) => cell === pawnType).length;
+}
+
 export function checkWinCondition(
   state: MechaDuelState
 ): { winner: string } | null {
+  // Primary win condition: opponent's king destroyed
   if (state.kings['0'] === null) {
     return { winner: '1' };
   }
   if (state.kings['1'] === null) {
     return { winner: '0' };
   }
+
+  // Secondary win condition: all opponent's pawns destroyed
+  const player0Pawns = countPawns(state.cells, '0');
+  const player1Pawns = countPawns(state.cells, '1');
+
+  if (player0Pawns === 0) {
+    return { winner: '1' };
+  }
+  if (player1Pawns === 0) {
+    return { winner: '0' };
+  }
+
   return null;
 }
 
