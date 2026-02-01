@@ -15,22 +15,28 @@ src/games/<game-name>/
 └── Game.test.ts     # Unit tests (write BEFORE implementation)
 ```
 
-### Registration (src/registry.ts)
+### Self-Registration (index.ts)
+
+Games are auto-discovered - no need to edit `registry.ts`. Just export a `definition` object:
 
 ```typescript
-import * as MyGame from './games/my-game';
-import MyGameRules from './games/my-game/rules.md?raw';
+// src/games/my-game/index.ts
+import type { GameDefinition } from '../../types';
+import { MyGame as game } from './Game';
+import { Board } from './Board';
+import rules from './rules.md?raw';
 
-// Add to games object:
-'my-game': {
-  game: MyGame.game,
-  Board: MyGame.Board,
+export type { MyGameState } from './Game';
+
+export const definition: GameDefinition = {
+  game,
+  Board,
   name: 'My Game',
   description: 'Short description',
   minPlayers: 2,
   maxPlayers: 2,
-  rules: MyGameRules,
-},
+  rules,
+};
 ```
 
 ---
@@ -243,18 +249,32 @@ ai: {
 
 **Commit**: `feat(my-game): add AI support with move enumeration (Phase 7)`
 
-### Phase 8: Registration & Exports
+### Phase 8: Exports & Self-Registration
 
-Create `index.ts`:
+Create `index.ts` with the full game definition (games are auto-discovered):
 
 ```typescript
-export { MyGame as game, type MyGameState } from './Game';
-export { Board } from './Board';
+import type { GameDefinition } from '../../types';
+import { MyGame as game } from './Game';
+import { Board } from './Board';
+import rules from './rules.md?raw';
+
+export type { MyGameState } from './Game';
+
+export const definition: GameDefinition = {
+  game,
+  Board,
+  name: 'My Game',
+  description: 'Short description',
+  minPlayers: 2,
+  maxPlayers: 2,
+  rules,
+};
 ```
 
-Update `src/registry.ts` (see Quick Reference above).
+No need to edit `registry.ts` - games are auto-discovered via `import.meta.glob()`.
 
-**Commit**: `feat(my-game): register game in registry (Phase 8)`
+**Commit**: `feat(my-game): add game exports and definition (Phase 8)`
 
 ---
 
@@ -455,9 +475,9 @@ G.cells[posToIndex(newPos)] = 'piece';
 G.piecePosition = newPos;
 ```
 
-### 4. Not registering in registry.ts
+### 4. Missing or incorrect definition export
 
-The game won't appear in the UI until added to `registry.ts`.
+The game won't appear in the UI unless `index.ts` exports a `definition` object of type `GameDefinition`. Ensure all required fields are present.
 
 ---
 
