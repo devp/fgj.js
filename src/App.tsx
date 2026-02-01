@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Client } from 'boardgame.io/react';
 import { Local } from 'boardgame.io/multiplayer';
-import { RandomBot, MCTSBot } from 'boardgame.io/ai';
+import { MCTSBot } from 'boardgame.io/ai';
 import { games, gameIds, type GameDefinition } from './registry';
 
 type AISettings = {
@@ -131,16 +131,15 @@ function createMCTSBot(game: GameDefinition['game']) {
   };
 }
 
-function GameView({ gameId, definition }: { gameId: string; definition: GameDefinition }) {
+function GameView({ definition }: { definition: GameDefinition }) {
   const [aiSettings, setAiSettings] = useState<AISettings>({ player0: false, player1: false });
 
   const GameClient = useMemo(() => {
-    // Use MCTSBot for tic-tac-toe (turn-based), RandomBot for others (like simultaneous RPS)
-    const useMCTS = gameId === 'tic-tac-toe';
-    const BotClass = useMCTS ? createMCTSBot(definition.game) : RandomBot;
+    // Always use MCTSBot (Monte Carlo Tree Search) for AI
+    const BotClass = createMCTSBot(definition.game);
 
     // Build the bots configuration based on AI settings
-    const bots: Record<string, typeof RandomBot> = {};
+    const bots: Record<string, typeof BotClass> = {};
     if (aiSettings.player0) {
       bots['0'] = BotClass;
     }
@@ -153,7 +152,7 @@ function GameView({ gameId, definition }: { gameId: string; definition: GameDefi
       board: definition.Board,
       multiplayer: Local({ bots: Object.keys(bots).length > 0 ? bots : undefined }),
     });
-  }, [gameId, definition, aiSettings]);
+  }, [definition, aiSettings]);
 
   return (
     <div style={{ fontFamily: 'sans-serif' }}>
@@ -232,7 +231,7 @@ export function App() {
   };
 
   if (currentGame && games[currentGame]) {
-    return <GameView gameId={currentGame} definition={games[currentGame]} />;
+    return <GameView definition={games[currentGame]} />;
   }
 
   return <GameSelector onSelect={selectGame} />;
