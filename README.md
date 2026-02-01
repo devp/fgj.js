@@ -13,12 +13,6 @@ Goal:
 
 - [How to Add New Games](doc/how_to_add_games.md) - Guide for implementing new games (written for LLM agents)
 
-## Current Games
-
-- **Tic-Tac-Toe** - Classic 3x3 grid game
-- **Rock Paper Scissors** - Best of three
-- **Mecha Duel** - Strategic mecha combat with committed attacks
-
 ## Development
 
 ```bash
