@@ -1,71 +1,49 @@
-import type { Game } from 'boardgame.io';
-import type { BoardProps } from 'boardgame.io/react';
-import type { ComponentType } from 'react';
+import type { GameDefinition } from './types';
 
-import * as TicTacToe from './games/tic-tac-toe';
-import TicTacToeRules from './games/tic-tac-toe/rules.md?raw';
-
-import * as RockPaperScissors from './games/rock-paper-scissors';
-import RockPaperScissorsRules from './games/rock-paper-scissors/rules.md?raw';
-
-import * as MechaDuel from './games/mecha-duel';
-import MechaDuelRules from './games/mecha-duel/rules.md?raw';
-
-export interface GameDefinition {
-  game: Game;
-  Board: ComponentType<BoardProps>;
-  name: string;
-  description: string;
-  minPlayers: number;
-  maxPlayers: number;
-  rules: string;
-}
+export type { GameDefinition } from './types';
 
 /*
  * ============================================================================
  * ADDING A NEW GAME
  * ============================================================================
- * 1. Create a new folder in src/games/<game-name>/
- * 2. Add the following files:
- *    - Game.ts    : boardgame.io game definition
- *    - Board.tsx  : React component for the game board
- *    - index.ts   : exports { game, Board }
- *    - rules.md   : Markdown file with game rules
- * 3. Import the game and rules below:
- *    import * as MyGame from './games/my-game';
- *    import MyGameRules from './games/my-game/rules.md?raw';
- * 4. Add an entry to the `games` object below
+ * Games are auto-discovered from src/games/<game-name>/ directories.
+ *
+ * To add a new game, create a folder with these files:
+ *   - Game.ts    : boardgame.io game definition
+ *   - Board.tsx  : React component for the game board
+ *   - index.ts   : exports a `definition` object of type GameDefinition
+ *   - rules.md   : Markdown file with game rules
+ *
+ * Example index.ts:
+ *   import type { GameDefinition } from '../../types';
+ *   import { MyGame as game } from './Game';
+ *   import { Board } from './Board';
+ *   import rules from './rules.md?raw';
+ *
+ *   export const definition: GameDefinition = {
+ *     game,
+ *     Board,
+ *     name: 'My Game',
+ *     description: 'A fun game',
+ *     minPlayers: 2,
+ *     maxPlayers: 4,
+ *     rules,
+ *   };
  * ============================================================================
  */
 
-export const games: Record<string, GameDefinition> = {
-  'tic-tac-toe': {
-    game: TicTacToe.game,
-    Board: TicTacToe.Board,
-    name: 'Tic-Tac-Toe',
-    description: 'Classic 3x3 grid game',
-    minPlayers: 2,
-    maxPlayers: 2,
-    rules: TicTacToeRules,
-  },
-  'rock-paper-scissors': {
-    game: RockPaperScissors.game,
-    Board: RockPaperScissors.Board,
-    name: 'Rock Paper Scissors',
-    description: 'Best of three',
-    minPlayers: 2,
-    maxPlayers: 2,
-    rules: RockPaperScissorsRules,
-  },
-  'mecha-duel': {
-    game: MechaDuel.game,
-    Board: MechaDuel.Board,
-    name: 'Mecha Duel',
-    description: 'Strategic mecha combat with committed attacks',
-    minPlayers: 2,
-    maxPlayers: 2,
-    rules: MechaDuelRules,
-  },
-};
+const gameModules = import.meta.glob<{ definition: GameDefinition }>(
+  './games/*/index.ts',
+  { eager: true }
+);
+
+export const games: Record<string, GameDefinition> = {};
+
+for (const [path, module] of Object.entries(gameModules)) {
+  const id = path.match(/\.\/games\/([^/]+)\//)?.[1];
+  if (id && module.definition) {
+    games[id] = module.definition;
+  }
+}
 
 export const gameIds = Object.keys(games);
