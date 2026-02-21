@@ -3,7 +3,7 @@
 ## Setup
 - 8×8 board
 - Each player starts with King on opposite ends (row 0 and row 7)
-- Scenario determines pawn placement (static obstacles)
+- Each player has pawns on their side of the board (scenario determines placement)
 - Each player has piece supply: 2 Bishops, 2 Rooks, 2 Knights, 1 Queen (all start Ready)
 
 ## Piece States
@@ -11,8 +11,9 @@
 - **Committed:** Placed on board as threat
 - **Exhausted:** Recently used, unavailable
 
-## Win Condition
-- Opponent's King is destroyed when struck by executed attack or stepped on
+## Win Conditions
+- **Primary:** Opponent's King is destroyed (struck by executed attack or stepped on)
+- **Secondary:** All of opponent's pawns are destroyed
 - Opponent resigns
 
 ## Turn Structure
@@ -64,6 +65,7 @@ On your turn, choose ONE action:
    - Strike attacks (first piece in the ray path)
    - Knight landing on a pawn square
    - KingStep entering a pawn square
+   - Destroying all of an opponent's pawns wins the game
 
 5. **Execution Order:** When executing, all Strikes resolve first (simultaneously), then Knights resolve in the order chosen by the player.
 

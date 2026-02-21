@@ -128,13 +128,13 @@ describe('createInitialBoard', () => {
     expect(cells[posToIndex({ x: 4, y: 7 })]).toBe('king1');
   });
 
-  it('places pawns at scenario positions', () => {
+  it('places pawns at scenario positions with correct colors', () => {
     const { cells } = createInitialBoard('simple');
-    // Simple scenario has pawns at (2,2), (5,2), (2,5), (5,5)
-    expect(cells[posToIndex({ x: 2, y: 2 })]).toBe('pawn');
-    expect(cells[posToIndex({ x: 5, y: 2 })]).toBe('pawn');
-    expect(cells[posToIndex({ x: 2, y: 5 })]).toBe('pawn');
-    expect(cells[posToIndex({ x: 5, y: 5 })]).toBe('pawn');
+    // Simple scenario: player 0 pawns at row 2, player 1 pawns at row 5
+    expect(cells[posToIndex({ x: 2, y: 2 })]).toBe('pawn0');
+    expect(cells[posToIndex({ x: 5, y: 2 })]).toBe('pawn0');
+    expect(cells[posToIndex({ x: 2, y: 5 })]).toBe('pawn1');
+    expect(cells[posToIndex({ x: 5, y: 5 })]).toBe('pawn1');
   });
 });
 
@@ -298,8 +298,8 @@ describe('raycast', () => {
 
   it('finds first pawn in path', () => {
     const cells = createEmptyBoard();
-    cells[posToIndex({ x: 4, y: 3 })] = 'pawn';
-    cells[posToIndex({ x: 4, y: 5 })] = 'pawn';
+    cells[posToIndex({ x: 4, y: 3 })] = 'pawn0';
+    cells[posToIndex({ x: 4, y: 5 })] = 'pawn1';
     const from = { x: 4, y: 0 };
     const toward = { x: 4, y: 7 };
     const result = Game.raycast(from, toward, cells);
@@ -317,7 +317,7 @@ describe('raycast', () => {
 
   it('works for diagonal directions', () => {
     const cells = createEmptyBoard();
-    cells[posToIndex({ x: 6, y: 6 })] = 'pawn';
+    cells[posToIndex({ x: 6, y: 6 })] = 'pawn1';
     const from = { x: 4, y: 4 };
     const toward = { x: 7, y: 7 };
     const result = Game.raycast(from, toward, cells);
@@ -351,14 +351,14 @@ describe('resolveStrike', () => {
   it('destroys first pawn in strike path', () => {
     const state = createTestState();
     const pawnPos = { x: 4, y: 3 };
-    state.cells[posToIndex(pawnPos)] = 'pawn';
+    state.cells[posToIndex(pawnPos)] = 'pawn1'; // enemy pawn
 
     const kingPos = state.kings['0']!;
     const targetPos = { x: 4, y: 7 };
     const result = Game.resolveStrike(state, kingPos, targetPos);
 
     expect(result.hit).toEqual(pawnPos);
-    expect(result.destroyed).toBe('pawn');
+    expect(result.destroyed).toBe('pawn1');
   });
 
   it('destroys opponent king in strike path', () => {
@@ -440,12 +440,12 @@ describe('resolveKnight', () => {
   it('destroys pawn at landing square', () => {
     const state = createTestState();
     const targetPos = { x: 5, y: 2 };
-    state.cells[posToIndex(targetPos)] = 'pawn';
+    state.cells[posToIndex(targetPos)] = 'pawn1'; // enemy pawn
 
     const result = Game.resolveKnight(state, '0', targetPos);
 
     expect(result.success).toBe(true);
-    expect(result.destroyed).toBe('pawn');
+    expect(result.destroyed).toBe('pawn1');
   });
 
   it('destroys opponent king at landing square', () => {
@@ -522,12 +522,12 @@ describe('resolveKingStep', () => {
   it('destroys pawn when entering pawn square', () => {
     const state = createTestState();
     const targetPos = { x: 4, y: 1 };
-    state.cells[posToIndex(targetPos)] = 'pawn';
+    state.cells[posToIndex(targetPos)] = 'pawn1'; // enemy pawn
 
     const result = Game.resolveKingStep(state, '0', targetPos);
 
     expect(result.success).toBe(true);
-    expect(result.destroyed).toBe('pawn');
+    expect(result.destroyed).toBe('pawn1');
   });
 
   it('destroys opponent king when stepping on', () => {
@@ -629,5 +629,45 @@ describe('checkWinCondition', () => {
     const state = createTestState();
     state.kings['1'] = null;
     expect(Game.checkWinCondition(state)).toEqual({ winner: '0' });
+  });
+
+  it('returns player 1 as winner when all player 0 pawns destroyed', () => {
+    const state = createTestState();
+    // Remove all player 0 pawns
+    for (let i = 0; i < state.cells.length; i++) {
+      if (state.cells[i] === 'pawn0') {
+        state.cells[i] = null;
+      }
+    }
+    expect(Game.checkWinCondition(state)).toEqual({ winner: '1' });
+  });
+
+  it('returns player 0 as winner when all player 1 pawns destroyed', () => {
+    const state = createTestState();
+    // Remove all player 1 pawns
+    for (let i = 0; i < state.cells.length; i++) {
+      if (state.cells[i] === 'pawn1') {
+        state.cells[i] = null;
+      }
+    }
+    expect(Game.checkWinCondition(state)).toEqual({ winner: '0' });
+  });
+});
+
+describe('countPawns', () => {
+  it('counts player 0 pawns correctly', () => {
+    const { cells } = createInitialBoard('simple');
+    expect(Game.countPawns(cells, '0')).toBe(2);
+  });
+
+  it('counts player 1 pawns correctly', () => {
+    const { cells } = createInitialBoard('simple');
+    expect(Game.countPawns(cells, '1')).toBe(2);
+  });
+
+  it('returns 0 when no pawns exist for player', () => {
+    const cells: CellContent[] = Array(TOTAL_CELLS).fill(null);
+    expect(Game.countPawns(cells, '0')).toBe(0);
+    expect(Game.countPawns(cells, '1')).toBe(0);
   });
 });
